@@ -13,7 +13,7 @@ import imgDriedMango from '../assets/img/DriedMango.jpg';
 import imgKashmiriSaffron from '../assets/img/KashmiriSaffron.jpg';
 import imgHimalayanShilajit from '../assets/img/HimaliyanShilajit.jpg';
 import imgBlueberry from '../assets/img/blueberry.jpg';
-import imgDryFruitMixture from '../assets/img/dryfruitmixture.jpg';
+import imgDryFruitMixture from '../assets/img/highprotienmix.jpeg';
 
 export const products = [
     {
@@ -219,9 +219,9 @@ export const products = [
         description: "Premium dried blueberries packed with antioxidants and bursting with sweet-tart flavor.",
         features: ["Superfood", "High Antioxidants", "Perfect for Baking", "Natural Snack"],
         variations: [
-            { weight: "1/2kg", price: 700, originalPrice: 950 },
-            { weight: "1kg", price: 1300, originalPrice: 1700 },
-            { weight: "5kg", price: 6250, originalPrice: 8000 }
+            { weight: "1/2kg", price: 1100, originalPrice: 1350 },
+            { weight: "1kg", price: 2000, originalPrice: 2700 },
+            { weight: "5kg", price: 9500, originalPrice: 11000 }
         ]
     },
     {
@@ -248,6 +248,45 @@ export const products = [
             { weight: "1/2kg", price: 400, originalPrice: 550 },
             { weight: "1kg", price: 700, originalPrice: 950 },
             { weight: "5kg", price: 3250, originalPrice: 4200 }
+        ]
+    },
+    {
+        id: "cherry",
+        name: "Dried Cherry",
+        category: "dry-fruits",
+        image: imgBlueberry, 
+        description: "Sweet and tart premium dried cherries. A delightful snack loaded with natural flavor.",
+        features: ["Naturally Sweet", "Rich in Antioxidants", "Chewy Texture", "Premium Quality"],
+        variations: [
+            { weight: "1/2kg", price: 600, originalPrice: 800 },
+            { weight: "1kg", price: 1100, originalPrice: 1500 },
+            { weight: "5kg", price: 5000, originalPrice: 6500 }
+        ]
+    },
+    {
+        id: "medjhool-dates",
+        name: "Medjhool Dates",
+        category: "dry-fruits",
+        image: imgBlackKishmish, // Placeholder
+        description: "Large, sweet, and succulent Medjhool dates known as the king of dates.",
+        features: ["Jumbo Size", "Natural Caramel Flavor", "High in Fiber", "Energy Booster"],
+        variations: [
+            { weight: "1/2kg", price: 800, originalPrice: 1000 },
+            { weight: "1kg", price: 1500, originalPrice: 1700 },
+            { weight: "5kg", price: 7000, originalPrice: 9500 }
+        ]
+    },
+    {
+        id: "aner",
+        name: "Aner (Anjeer)",
+        category: "dry-fruits",
+        image: imgDriedApricot, // Placeholder
+        description: "Premium dried figs (Aner/Anjeer) packed with natural sweetness and nutritional benefits.",
+        features: ["Sun-Dried", "High Fiber", "Promotes Digestion", "Rich in Calcium"],
+        variations: [
+            { weight: "1/2kg", price: 650, originalPrice: 850 },
+            { weight: "1kg", price: 1200, originalPrice: 1600 },
+            { weight: "5kg", price: 5500, originalPrice: 7500 }
         ]
     }
 ];

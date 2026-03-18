@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useState, useMemo } from 'react';
-import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { useCatalog } from '../hooks/useCatalog';
+import tabrukPackagingImage from '../assets/img/tabruk_packaging.png';
+import tabrukPacketImage from '../assets/img/tabrukpacket.png';
 
 export default function Products() {
     const [sortBy, setSortBy] = useState('Featured');
+    const [activeSlides, setActiveSlides] = useState({});
     const { addToCart } = useCart();
+    const { catalog: products } = useCatalog();
 
     const sortedProducts = useMemo(() => {
         let sorted = [...products];
@@ -16,7 +20,20 @@ export default function Products() {
             sorted.sort((a, b) => b.variations[0].price - a.variations[0].price);
         }
         return sorted;
-    }, [sortBy]);
+    }, [products, sortBy]);
+
+    const getProductImages = (product) => [
+        product.image,
+        tabrukPackagingImage,
+        tabrukPacketImage,
+    ].filter(Boolean);
+
+    const handleSlideChange = (productId, nextIndex) => {
+        setActiveSlides((prev) => ({
+            ...prev,
+            [productId]: nextIndex,
+        }));
+    };
 
     return (
         <div className="bg-[#111111] pt-32 pb-24 min-h-screen">
@@ -59,6 +76,20 @@ export default function Products() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
                     {sortedProducts.map((product, index) => {
                         const baseVariation = product.variations[0];
+                        const productImages = getProductImages(product);
+                        const activeSlide = activeSlides[product.id] ?? 0;
+                        const hasMultipleSlides = productImages.length > 1;
+
+                        const goPrevSlide = () => {
+                            const next = (activeSlide - 1 + productImages.length) % productImages.length;
+                            handleSlideChange(product.id, next);
+                        };
+
+                        const goNextSlide = () => {
+                            const next = (activeSlide + 1) % productImages.length;
+                            handleSlideChange(product.id, next);
+                        };
+
                         return (
                             <motion.div
                                 key={product.id}
@@ -68,16 +99,57 @@ export default function Products() {
                                 className="group cursor-pointer flex flex-col h-full"
                             >
                                 <div className="block flex-grow relative">
-                                    <Link to={`/products/${product.id}`}>
-                                        <div className="aspect-square overflow-hidden mb-5 relative bg-[#1a1a1a] rounded-sm border border-white/5">
-                                            <img
-                                                src={product.image}
-                                                alt={product.name}
-                                                className="object-cover w-full h-full group-hover:scale-105 group-hover:opacity-80 transition-all duration-700 ease-out"
-                                            />
+                                    <div className="aspect-square overflow-hidden mb-5 relative bg-[#1a1a1a] rounded-sm border border-white/5">
+                                        <Link to={`/products/${product.id}`}>
+                                            <div
+                                                className="flex w-full h-full transition-transform duration-500 ease-out"
+                                                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+                                            >
+                                                {productImages.map((imageSrc, imageIndex) => (
+                                                    <img
+                                                        key={`${product.id}-slide-${imageIndex}`}
+                                                        src={imageSrc}
+                                                        alt={`${product.name} view ${imageIndex + 1}`}
+                                                        className="object-cover w-full h-full flex-shrink-0 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700 ease-out"
+                                                    />
+                                                ))}
+                                            </div>
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300 z-10 pointer-events-none"></div>
-                                        </div>
-                                    </Link>
+                                        </Link>
+
+                                        {hasMultipleSlides && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={goPrevSlide}
+                                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                                                    aria-label={`Previous image for ${product.name}`}
+                                                >
+                                                    &#8249;
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={goNextSlide}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                                                    aria-label={`Next image for ${product.name}`}
+                                                >
+                                                    &#8250;
+                                                </button>
+                                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+                                                    {productImages.map((_, dotIndex) => (
+                                                        <button
+                                                            key={`${product.id}-dot-${dotIndex}`}
+                                                            type="button"
+                                                            onClick={() => handleSlideChange(product.id, dotIndex)}
+                                                            className={`h-1.5 rounded-full transition-all ${activeSlide === dotIndex ? 'w-5 bg-gold' : 'w-2 bg-white/60 hover:bg-white/90'}`}
+                                                            aria-label={`Go to image ${dotIndex + 1} for ${product.name}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
                                     <div className="absolute inset-x-0 bottom-[5.5rem] p-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 z-20 pointer-events-none flex justify-center">
                                         <button
                                             onClick={(e) => {

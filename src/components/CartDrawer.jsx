@@ -1,10 +1,168 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { backendApi } from '../api/backend';
+
+function loadPaytmScript(scriptUrl) {
+  return new Promise((resolve, reject) => {
+    if (window.Paytm?.CheckoutJS) {
+      resolve();
+      return;
+    }
+
+    const existing = document.querySelector(`script[data-paytm-checkout="true"]`);
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Failed to load Paytm script.')));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.async = true;
+    script.dataset.paytmCheckout = 'true';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Paytm script.'));
+    document.body.appendChild(script);
+  });
+}
+
+function invokePaytmCheckout({ orderId, amount, txnToken, mid }) {
+  return new Promise((resolve, reject) => {
+    const CheckoutJS = window.Paytm?.CheckoutJS;
+
+    if (!CheckoutJS) {
+      reject(new Error('Paytm checkout is unavailable.'));
+      return;
+    }
+
+    let isSettled = false;
+
+    const settle = (callback, value) => {
+      if (isSettled) return;
+      isSettled = true;
+      callback(value);
+    };
+
+    CheckoutJS.init({
+      root: '',
+      flow: 'DEFAULT',
+      data: {
+        orderId,
+        token: txnToken,
+        tokenType: 'TXN_TOKEN',
+        amount: String(amount),
+      },
+      handler: {
+        notifyMerchant: (eventName, data) => {
+          if (eventName === 'APP_CLOSED') {
+            settle(reject, new Error('Payment window was closed before completion.'));
+          }
+
+          if (eventName === 'TRANSACTION_COMPLETED') {
+            settle(resolve, data);
+          }
+        },
+      },
+    })
+      .then(() => {
+        CheckoutJS.invoke();
+      })
+      .catch((error) => {
+        settle(reject, new Error(error?.message || 'Unable to start Paytm checkout.'));
+      });
+
+    const fallbackTimeout = setTimeout(() => {
+      settle(reject, new Error('Payment verification timeout. Please retry.'));
+    }, 120000);
+
+    const originalResolve = resolve;
+    const originalReject = reject;
+
+    resolve = (value) => {
+      clearTimeout(fallbackTimeout);
+      originalResolve(value);
+    };
+
+    reject = (error) => {
+      clearTimeout(fallbackTimeout);
+      originalReject(error);
+    };
+  });
+}
 
 export default function CartDrawer() {
-  const { isCartOpen, setIsCartOpen, cartItems, updateQuantity, removeFromCart, cartTotal } = useCart();
+  const { isCartOpen, setIsCartOpen, cartItems, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
+  const navigate = useNavigate();
+  const [customerForm, setCustomerForm] = useState({ name: '', phone: '', address: '', notes: '' });
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const [orderSuccess, setOrderSuccess] = useState('');
+
+  const handlePlaceOrder = async () => {
+    try {
+      setIsPlacingOrder(true);
+      setOrderError('');
+      setOrderSuccess('');
+
+      const paymentInit = await backendApi.initiatePaytmPayment({
+        amount: cartTotal,
+        customer: customerForm,
+        items: cartItems,
+      });
+
+      await loadPaytmScript(paymentInit.checkoutScriptUrl);
+
+      await invokePaytmCheckout({
+        orderId: paymentInit.orderId,
+        amount: paymentInit.amount,
+        txnToken: paymentInit.txnToken,
+        mid: paymentInit.mid,
+      });
+
+      const verification = await backendApi.verifyPaytmPayment(paymentInit.orderId);
+      const txnStatus = verification?.body?.resultInfo?.resultStatus;
+
+      if (txnStatus !== 'TXN_SUCCESS') {
+        const failedMessage = verification?.body?.resultInfo?.resultMsg || 'Payment failed or is pending.';
+        const nextStatus = txnStatus === 'PENDING' ? 'pending' : 'failed';
+
+        navigate(
+          `/payment-status?status=${encodeURIComponent(nextStatus)}&paymentOrderId=${encodeURIComponent(paymentInit.orderId)}&message=${encodeURIComponent(failedMessage)}`,
+        );
+        setIsCartOpen(false);
+        return;
+      }
+
+      const order = await backendApi.createOrder({
+        customer: customerForm,
+        items: cartItems,
+        payment: {
+          gateway: 'paytm',
+          orderId: paymentInit.orderId,
+          transactionId: verification?.body?.txnId || '',
+          status: txnStatus,
+        },
+      });
+
+      clearCart();
+      setCustomerForm({ name: '', phone: '', address: '', notes: '' });
+      setOrderSuccess(`Order placed successfully. Order No: ${order.orderNumber}`);
+      navigate(
+        `/payment-status?status=success&orderNumber=${encodeURIComponent(order.orderNumber)}&paymentOrderId=${encodeURIComponent(paymentInit.orderId)}`,
+      );
+      setIsCartOpen(false);
+    } catch (error) {
+      const message = error.message || 'Failed to place order';
+      setOrderError(message);
+      navigate(`/payment-status?status=failed&message=${encodeURIComponent(message)}`);
+      setIsCartOpen(false);
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -110,8 +268,44 @@ export default function CartDrawer() {
                 <p className="text-xs font-inter text-white/40 mb-6 text-center">
                   Shipping and taxes calculated at checkout.
                 </p>
-                <button className="w-full bg-gold text-[#111111] py-4 text-sm font-inter uppercase tracking-widest hover:bg-gold-light transition-colors duration-300 font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-                  Checkout
+                <div className="space-y-3 mb-4">
+                  <input
+                    value={customerForm.name}
+                    onChange={(event) => setCustomerForm((prev) => ({ ...prev, name: event.target.value }))}
+                    placeholder="Customer name"
+                    className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none"
+                  />
+                  <input
+                    value={customerForm.phone}
+                    onChange={(event) => setCustomerForm((prev) => ({ ...prev, phone: event.target.value }))}
+                    placeholder="Phone"
+                    className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none"
+                  />
+                  <textarea
+                    value={customerForm.address}
+                    onChange={(event) => setCustomerForm((prev) => ({ ...prev, address: event.target.value }))}
+                    placeholder="Delivery address"
+                    rows={2}
+                    className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none"
+                  />
+                  <textarea
+                    value={customerForm.notes}
+                    onChange={(event) => setCustomerForm((prev) => ({ ...prev, notes: event.target.value }))}
+                    placeholder="Notes (optional)"
+                    rows={2}
+                    className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none"
+                  />
+                </div>
+
+                {orderError && <p className="text-xs text-red-400 mb-3">{orderError}</p>}
+                {orderSuccess && <p className="text-xs text-green-400 mb-3">{orderSuccess}</p>}
+
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={isPlacingOrder}
+                  className="w-full bg-gold text-[#111111] py-4 text-sm font-inter uppercase tracking-widest hover:bg-gold-light transition-colors duration-300 font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-70"
+                >
+                  {isPlacingOrder ? 'Processing Payment...' : 'Pay with Paytm'}
                 </button>
               </div>
             )}

@@ -1,24 +1,24 @@
-import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Check, Truck } from 'lucide-react';
-import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { useCatalog } from '../hooks/useCatalog';
+import tabrukPackagingImage from '../assets/img/tabruk_packaging.png';
+import tabrukPacketImage from '../assets/img/tabrukpacket.png';
 
 export default function ProductDetails() {
     const { id } = useParams();
-    const product = products.find(p => p.id === id);
+    const { catalog } = useCatalog();
+    const product = catalog.find(p => p.id === id);
 
-    const [selectedVariation, setSelectedVariation] = useState(null);
+    const [selectedWeight, setSelectedWeight] = useState('');
     const [quantity, setQuantity] = useState(1);
+    const [activeSlide, setActiveSlide] = useState(0);
     const { addToCart } = useCart();
 
-    useEffect(() => {
-        if (product) {
-            setSelectedVariation(product.variations[0]);
-            setQuantity(1); // reset quantity on product load changes
-        }
-    }, [product]);
+    const selectedVariation = product
+        ? product.variations.find(v => v.weight === selectedWeight) || product.variations[0]
+        : null;
 
     if (!product || !selectedVariation) {
         return (
@@ -31,6 +31,18 @@ export default function ProductDetails() {
 
     const handleAddToCart = () => {
         addToCart(product, selectedVariation, quantity);
+    };
+
+    const productImages = [product.image, tabrukPackagingImage, tabrukPacketImage].filter(Boolean);
+
+    const goPrevSlide = () => {
+        const next = (activeSlide - 1 + productImages.length) % productImages.length;
+        setActiveSlide(next);
+    };
+
+    const goNextSlide = () => {
+        const next = (activeSlide + 1) % productImages.length;
+        setActiveSlide(next);
     };
 
     return (
@@ -46,26 +58,58 @@ export default function ProductDetails() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
                     {/* Images */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="space-y-4"
-                    >
+                    <div className="space-y-4">
                         <div className="aspect-square bg-[#1a1a1a] rounded-sm overflow-hidden sticky top-24 border border-white/5 shadow-2xl">
-                            <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                            />
+                            <div
+                                className="flex w-full h-full transition-transform duration-500 ease-out"
+                                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+                            >
+                                {productImages.map((imageSrc, imageIndex) => (
+                                    <img
+                                        key={`${product.id}-detail-slide-${imageIndex}`}
+                                        src={imageSrc}
+                                        alt={`${product.name} view ${imageIndex + 1}`}
+                                        className="w-full h-full object-cover flex-shrink-0"
+                                    />
+                                ))}
+                            </div>
+
+                            {productImages.length > 1 && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={goPrevSlide}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                                        aria-label={`Previous image for ${product.name}`}
+                                    >
+                                        &#8249;
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={goNextSlide}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                                        aria-label={`Next image for ${product.name}`}
+                                    >
+                                        &#8250;
+                                    </button>
+                                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+                                        {productImages.map((_, dotIndex) => (
+                                            <button
+                                                key={`${product.id}-detail-dot-${dotIndex}`}
+                                                type="button"
+                                                onClick={() => setActiveSlide(dotIndex)}
+                                                className={`h-1.5 rounded-full transition-all ${activeSlide === dotIndex ? 'w-6 bg-gold' : 'w-2 bg-white/70 hover:bg-white'}`}
+                                                aria-label={`Go to image ${dotIndex + 1} for ${product.name}`}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Details */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col pt-4 lg:pt-10"
-                    >
+                    <div className="flex flex-col pt-4 lg:pt-10">
                         <h1 className="text-3xl sm:text-4xl md:text-5xl font-display text-gold mb-6 leading-tight">
                             {product.name}
                         </h1>
@@ -100,7 +144,7 @@ export default function ProductDetails() {
                                 {product.variations.map((v, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => setSelectedVariation(v)}
+                                        onClick={() => setSelectedWeight(v.weight)}
                                         className={`px-5 py-3 border rounded-sm text-sm font-inter font-bold transition-all duration-300 outline-none
                       ${selectedVariation.weight === v.weight
                                                 ? 'border-gold text-gold bg-gold/5 shadow-[0_0_15px_rgba(212,175,55,0.2)]'
@@ -153,7 +197,7 @@ export default function ProductDetails() {
                             <p>Free standard shipping on orders over <span className="text-gold font-bold text-base">Rs. 999</span> within India.</p>
                         </div>
 
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </div>

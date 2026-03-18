@@ -4,6 +4,7 @@ import { Search, ShoppingBag, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useState } from 'react';
 import SearchModal from './SearchModal';
+import logo from '../assets/img/logo_tabruk.png';
 
 export default function Header() {
     const { cartCount, setIsCartOpen } = useCart();
@@ -34,8 +35,12 @@ export default function Header() {
 
                         {/* Logo (Center) */}
                         <div className="flex-shrink-0 flex items-center justify-center">
-                            <Link to="/" className="font-display text-2xl tracking-widest uppercase text-gold text-center">
-                                Tabruk
+                            <Link to="/" className="flex flex-col items-center justify-center text-center group">
+                                <div className="flex items-center gap-2">
+                                    <img src={logo} alt="Tabruk Logo" className="h-6 w-auto sm:h-8 object-contain" />
+                                    <span className="font-display text-xl sm:text-2xl tracking-widest uppercase text-gold">Tabruk</span>
+                                </div>
+                                <span className="text-[9px] sm:text-[10px] text-white/50 tracking-[0.2em] font-light uppercase mt-0.5">Dry Fruits</span>
                             </Link>
                         </div>
 

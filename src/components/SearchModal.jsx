@@ -2,12 +2,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search as SearchIcon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { products } from '../data/products';
+import { useCatalog } from '../hooks/useCatalog';
 
 export default function SearchModal({ isOpen, onClose }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const inputRef = useRef(null);
+    const { catalog: products } = useCatalog();
 
     useEffect(() => {
         if (isOpen) {
