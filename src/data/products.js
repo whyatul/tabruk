@@ -1,6 +1,6 @@
 import imgKaju from '../assets/img/kaju.jpg';
 import imgGreenKishmish from '../assets/img/green kishmish.jpg';
-import imgBlackKishmish from '../assets/img/blackkishmish.jpg';
+import imgBlackKishmish from '../assets/img/black kishmish.jpeg';
 import imgCaliforniaBadam from '../assets/img/CaliforniaBadan.jpg';
 import imgAmericanBadam from '../assets/img/americanBadam.jpg';
 import imgKashmiriMamra from '../assets/img/KashmiriMamraBadan.jpg';
@@ -14,6 +14,15 @@ import imgKashmiriSaffron from '../assets/img/KashmiriSaffron.jpg';
 import imgHimalayanShilajit from '../assets/img/HimaliyanShilajit.jpg';
 import imgBlueberry from '../assets/img/blueberry.jpg';
 import imgDryFruitMixture from '../assets/img/highprotienmix.jpeg';
+import imgSafedMusli from '../assets/img/safed musli.jpeg';
+import imgMixFruit from '../assets/img/mix fruit.jpeg';
+import imgMedjhoolDates from '../assets/img/medjhool dates.jpeg';
+import imgKiwi from '../assets/img/kiwi.jpeg';
+import imgKalmiDates from '../assets/img/kalmi dates.jpeg';
+import imgAshwaganda from '../assets/img/ashwaganda.jpeg';
+import imgTurkishApricot from '../assets/img/turkish_apricot.png';
+import imgDriedAnjeer from '../assets/img/dried_anjeer.png';
+import imgDriedCherry from '../assets/img/dried_cherry.png';
 
 export const products = [
     {
@@ -115,9 +124,9 @@ export const products = [
         description: "Authentic Afghani curved almonds. Renowned for their incredible sweetness and crunchy texture.",
         features: ["Afghani Origin", "Naturally Sweet", "Crisp Crunch", "Unpolished"],
         variations: [
-            { weight: "1/2kg", price: 600, originalPrice: 800 },
+            { weight: "1/2kg", price: 650, originalPrice: 850 },
             { weight: "1kg", price: 1200, originalPrice: 1600 },
-            { weight: "5kg", price: 5850, originalPrice: 7500 }
+            { weight: "5kg", price: 5500, originalPrice: 7000 }
         ]
     },
     {
@@ -241,7 +250,7 @@ export const products = [
         id: "12-varieties-mixture",
         name: "12 Varieties Mixture",
         category: "mixes",
-        image: imgDryFruitMixture, // Reused image
+        image: imgMixFruit,
         description: "The ultimate 12-in-1 power mix containing assorted nuts, seeds, and dried berries for complete nutrition.",
         features: ["12 Ingredients", "Nutrient Dense", "Seeds & Nuts Blend", "Immunity Builder"],
         variations: [
@@ -254,7 +263,7 @@ export const products = [
         id: "cherry",
         name: "Dried Cherry",
         category: "dry-fruits",
-        image: imgBlueberry, 
+        image: imgDriedCherry, 
         description: "Sweet and tart premium dried cherries. A delightful snack loaded with natural flavor.",
         features: ["Naturally Sweet", "Rich in Antioxidants", "Chewy Texture", "Premium Quality"],
         variations: [
@@ -267,26 +276,91 @@ export const products = [
         id: "medjhool-dates",
         name: "Medjhool Dates",
         category: "dry-fruits",
-        image: imgBlackKishmish, // Placeholder
+        image: imgMedjhoolDates,
         description: "Large, sweet, and succulent Medjhool dates known as the king of dates.",
         features: ["Jumbo Size", "Natural Caramel Flavor", "High in Fiber", "Energy Booster"],
         variations: [
-            { weight: "1/2kg", price: 800, originalPrice: 1000 },
-            { weight: "1kg", price: 1500, originalPrice: 1700 },
-            { weight: "5kg", price: 7000, originalPrice: 9500 }
+            { weight: "1/2kg", price: 700, originalPrice: 950 },
+            { weight: "1kg", price: 1350, originalPrice: 1800 },
+            { weight: "5kg", price: 6200, originalPrice: 8000 }
         ]
     },
     {
         id: "aner",
         name: "Aner (Anjeer)",
         category: "dry-fruits",
-        image: imgDriedApricot, // Placeholder
+        image: imgDriedAnjeer,
         description: "Premium dried figs (Aner/Anjeer) packed with natural sweetness and nutritional benefits.",
         features: ["Sun-Dried", "High Fiber", "Promotes Digestion", "Rich in Calcium"],
         variations: [
             { weight: "1/2kg", price: 650, originalPrice: 850 },
             { weight: "1kg", price: 1200, originalPrice: 1600 },
             { weight: "5kg", price: 5500, originalPrice: 7500 }
+        ]
+    },
+    {
+        id: "safed-musli",
+        name: "Safed Musli",
+        category: "wellness",
+        image: imgSafedMusli,
+        description: "Premium Safed Musli, a rare ayurvedic herb known for vitality and strength.",
+        features: ["100% Pure", "Ayurvedic Herb", "Boosts Vitality", "Natural Supplement"],
+        variations: [
+            { weight: "250g", price: 800, originalPrice: 1100 },
+            { weight: "500g", price: 1400, originalPrice: 1900 },
+            { weight: "1kg", price: 2500, originalPrice: 3400 }
+        ]
+    },
+    {
+        id: "kiwi",
+        name: "Dried Kiwi",
+        category: "dry-fruits",
+        image: imgKiwi,
+        description: "Deliciously sweet and tangy dried kiwi slices, perfectly preserved to retain nutrients.",
+        features: ["Vitamin C Rich", "Sweet & Tangy", "Chewy Texture", "Healthy Snack"],
+        variations: [
+            { weight: "1/2kg", price: 400, originalPrice: 550 },
+            { weight: "1kg", price: 700, originalPrice: 950 },
+            { weight: "5kg", price: 3000, originalPrice: 4200 }
+        ]
+    },
+    {
+        id: "kalmi-dates",
+        name: "Kalmi Dates",
+        category: "dry-fruits",
+        image: imgKalmiDates,
+        description: "Premium Safawi (Kalmi) dates from Saudi Arabia, famous for their dark color and rich flavor.",
+        features: ["Imported Quality", "Dark & Chewy", "Iron Rich", "Natural Sweetener"],
+        variations: [
+            { weight: "1/2kg", price: 450, originalPrice: 600 },
+            { weight: "1kg", price: 800, originalPrice: 1100 },
+            { weight: "5kg", price: 3500, originalPrice: 5000 }
+        ]
+    },
+    {
+        id: "ashwagandha",
+        name: "Ashwagandha",
+        category: "wellness",
+        image: imgAshwaganda,
+        description: "Pure Ashwagandha root known for its stress-relieving adaptogenic properties.",
+        features: ["Stress Relief", "Adaptogenic Herb", "Ayurvedic Quality", "Improves Sleep"],
+        variations: [
+            { weight: "250g", price: 400, originalPrice: 550 },
+            { weight: "500g", price: 700, originalPrice: 950 },
+            { weight: "1kg", price: 1200, originalPrice: 1600 }
+        ]
+    },
+    {
+        id: "turkish",
+        name: "Turkish",
+        category: "dry-fruits",
+        image: imgTurkishApricot,
+        description: "Premium Turkish dry fruit imports, offering the quintessential taste and texture.",
+        features: ["Imported from Turkey", "Premium Grade", "Naturally Sweetened", "Healthy Snack"],
+        variations: [
+            { weight: "1/2kg", price: 700, originalPrice: 950 },
+            { weight: "1kg", price: 1300, originalPrice: 1800 },
+            { weight: "5kg", price: 6000, originalPrice: 8000 }
         ]
     }
 ];

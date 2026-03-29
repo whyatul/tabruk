@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 import { backendApi } from '../api/backend';
-import { AdminAuthContext } from './adminAuthContext';
+
+export const AdminAuthContext = createContext(null);
 
 export function AdminAuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
