@@ -23,6 +23,9 @@ import imgAshwaganda from '../assets/img/ashwaganda.jpeg';
 import imgTurkishApricot from '../assets/img/turkish_apricot.png';
 import imgDriedAnjeer from '../assets/img/dried_anjeer.png';
 import imgDriedCherry from '../assets/img/dried_cherry.png';
+import imgKashmiriMamraBadamGenerated from '../assets/img/kashmiri_mamra_badam.png';
+import imgWalnutGiriSnowWhiteGenerated from '../assets/img/walnut_giri_snow_white.png';
+import imgTabrukShilajitBranded from '../assets/img/tabruk_shilajit_branded.png';
 
 export const products = [
     {
@@ -94,7 +97,7 @@ export const products = [
         id: "kashmiri-mamra-badam",
         name: "Kashmiri Mamra Badam",
         category: "dry-fruits",
-        image: imgKashmiriMamra,
+        image: imgKashmiriMamraBadamGenerated,
         description: "The absolute pinnacle of almonds. Mamra almonds are prized for their rich essential oils and immense health benefits.",
         features: ["High Essential Oils", "Cholesterol Free", "Boosts Immunity", "Authentic Kashmiri"],
         variations: [
@@ -133,7 +136,7 @@ export const products = [
         id: "walnut-giri-snow-white",
         name: "Walnut Giri Snow White 2pc",
         category: "dry-fruits",
-        image: imgWalnutSnowWhite,
+        image: imgWalnutGiriSnowWhiteGenerated,
         description: "Beautifully intact snow-white walnut halves. These pristine Kashmiri walnuts offer an unmatched buttery flavor.",
         features: ["Snow White Halves", "High Omega-3", "Perfect 2pc Intact", "No Bleaching"],
         variations: [
@@ -211,7 +214,7 @@ export const products = [
         id: "himalayan-shilajit-liquid",
         name: "Himalyan Shilajit Liquid",
         category: "wellness",
-        image: imgHimalayanShilajit,
+        image: imgTabrukShilajitBranded,
         description: "Pure Himalayan Shilajit naturally concentrated in liquid form for ultimate potency. Traditionally used for vitality.",
         features: ["Pure Extract", "High Fulvic Acid", "Lab Tested", "Boosts Energy"],
         variations: [
@@ -352,7 +355,7 @@ export const products = [
     },
     {
         id: "turkish",
-        name: "Turkish",
+        name: "Turkish Anjerr",
         category: "dry-fruits",
         image: imgTurkishApricot,
         description: "Premium Turkish dry fruit imports, offering the quintessential taste and texture.",
