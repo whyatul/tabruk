@@ -21,7 +21,7 @@ import imgKiwi from '../assets/img/kiwi.jpeg';
 import imgKalmiDates from '../assets/img/kalmi dates.jpeg';
 import imgAshwaganda from '../assets/img/ashwaganda.jpeg';
 import imgTurkishApricot from '../assets/img/turkish_apricot.png';
-import imgDriedAnjeer from '../assets/img/dried_anjeer.png';
+import imgDriedAnjeer from '../assets/img/afgani-anjeer.jpeg';
 import imgDriedCherry from '../assets/img/dried_cherry.png';
 import imgKashmiriMamraBadamGenerated from '../assets/img/kashmiri_mamra_badam.png';
 import imgWalnutGiriSnowWhiteGenerated from '../assets/img/walnut_giri_snow_white.png';
@@ -290,10 +290,10 @@ export const products = [
     },
     {
         id: "aner",
-        name: "Aner (Anjeer)",
+        name: "Afgani Anjeer",
         category: "dry-fruits",
         image: imgDriedAnjeer,
-        description: "Premium dried figs (Aner/Anjeer) packed with natural sweetness and nutritional benefits.",
+        description: "Premium Afghani dried figs (Anjeer) packed with natural sweetness and nutritional benefits.",
         features: ["Sun-Dried", "High Fiber", "Promotes Digestion", "Rich in Calcium"],
         variations: [
             { weight: "1/2kg", price: 650, originalPrice: 850 },
