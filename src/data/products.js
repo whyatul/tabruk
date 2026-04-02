@@ -21,6 +21,7 @@ import imgKiwi from '../assets/img/kiwi.jpeg';
 import imgKalmiDates from '../assets/img/kalmi dates.jpeg';
 import imgAshwaganda from '../assets/img/ashwaganda.jpeg';
 import imgTurkishApricot from '../assets/img/turkish_apricot.png';
+import imgTurkishAnjeer from '../assets/img/turkish_anjeer.jpg';
 import imgDriedAnjeer from '../assets/img/afgani-anjeer.jpeg';
 import imgDriedCherry from '../assets/img/dried_cherry.png';
 import imgKashmiriMamraBadamGenerated from '../assets/img/kashmiri_mamra_badam.png';
@@ -355,9 +356,9 @@ export const products = [
     },
     {
         id: "turkish",
-        name: "Turkish Anjerr",
+        name: "Turkish Anjeer",
         category: "dry-fruits",
-        image: imgTurkishApricot,
+        image: imgTurkishAnjeer,
         description: "Premium Turkish dry fruit imports, offering the quintessential taste and texture.",
         features: ["Imported from Turkey", "Premium Grade", "Naturally Sweetened", "Healthy Snack"],
         variations: [
