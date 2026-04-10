@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { Check, Truck } from 'lucide-react';
+import { Check, Truck, Share2, Copy } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCatalog } from '../hooks/useCatalog';
 import tabrukPackagingImage from '../assets/img/tabruk_packaging.png';
@@ -14,6 +14,7 @@ export default function ProductDetails() {
     const [selectedWeight, setSelectedWeight] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [activeSlide, setActiveSlide] = useState(0);
+    const [copied, setCopied] = useState(false);
     const { addToCart } = useCart();
 
     const selectedVariation = product
@@ -43,6 +44,25 @@ export default function ProductDetails() {
     const goNextSlide = () => {
         const next = (activeSlide + 1) % productImages.length;
         setActiveSlide(next);
+    };
+
+    const handleShare = async () => {
+        const url = window.location.href;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: product.name,
+                    text: `Check out ${product.name} on Tabruk!`,
+                    url: url,
+                });
+            } catch (error) {
+                console.log('Sharing failed', error);
+            }
+        } else {
+            navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     return (
@@ -110,9 +130,19 @@ export default function ProductDetails() {
 
                     {/* Details */}
                     <div className="flex flex-col pt-4 lg:pt-10">
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-display text-gold mb-6 leading-tight">
-                            {product.name}
-                        </h1>
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-display text-gold leading-tight">
+                                {product.name}
+                            </h1>
+                            <button
+                                onClick={handleShare}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-colors text-white/80"
+                                title="Share product"
+                            >
+                                {copied ? <Copy className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
+                                <span className="text-xs font-inter uppercase tracking-wider">{copied ? 'Copied' : 'Share'}</span>
+                            </button>
+                        </div>
 
                         <div className="flex items-end gap-3 mb-8 pb-6 border-b border-white/10">
                             <span className="text-3xl font-inter text-white">Rs. {selectedVariation.price}</span>

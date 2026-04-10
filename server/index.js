@@ -619,12 +619,17 @@ app.get('/api/admin/orders', requireAdminAuth, async (_req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
-  const created = await createOrderStore(req.body ?? {});
-  if (created.error) {
-    return res.status(created.status || 400).json({ error: created.error });
-  }
+  try {
+    const created = await createOrderStore(req.body ?? {});
+    if (created.error) {
+      return res.status(created.status || 400).json({ error: created.error });
+    }
 
-  return res.status(201).json(created.value);
+    return res.status(201).json(created.value);
+  } catch (err) {
+    console.error('Order Error:', err);
+    return res.status(500).json({ error: 'System Error: ' + err.message });
+  }
 });
 
 app.post('/api/payments/paytm/initiate', async (req, res) => {

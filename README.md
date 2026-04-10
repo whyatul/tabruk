@@ -1,38 +1,62 @@
 # Tabruk Store + Admin
 
-This project now supports Neon PostgreSQL for products and orders storage.
+This project is a decoupled e-commerce platform with a React/Vite frontend and an Express/Node.js backend, using a Neon PostgreSQL database. It features a custom manual QR payment flow via WhatsApp verification and easy sharing directly embedded on the product pages.
 
-## Neon database setup
+---
 
-1. Copy env template:
+## 🚀 Deployment Instructions
 
+This repository is built for **Decoupled Architecture**, meaning you must deploy the Backend and Frontend to separate services.
+
+### Step 1: Deploy Backend to RENDER
+Deploy the Node.js backend to Render to handle your database connections and orders API securely.
+
+1. Create a new **Web Service** on Render and connect this repository.
+2. Configure settings:
+   * **Root Directory:** `.` (leave empty)
+   * **Build Command:** `npm install` (or `pnpm install`)
+   * **Start Command:** `npm run server`
+3. Add the following **Environment Variables**:
+   * `DATABASE_URL` = `<your_neon_postgres_db_url>`
+   * `ADMIN_USERNAME` = `admin` (or any custom username)
+   * `ADMIN_PASSWORD` = `admin123` (or any secure password)
+4. Deploy the backend and copy its public API URL (e.g., `https://tabruk-backend.onrender.com`).
+
+*(Note: The server auto-creates the necessary tables on startup when `DATABASE_URL` is present. No manual migrations needed!)*
+
+### Step 2: Deploy Frontend to VERCEL
+Now deploy the user-facing React application to Vercel.
+
+1. Create a new **Project** on Vercel and import this repository.
+2. Vercel should auto-detect Vite. Ensure the configuration is:
+   * **Framework Preset:** Vite
+   * **Build Command:** `npm run build`
+   * **Output Directory:** `dist`
+3. **⚠️ CRITICAL: Environment Dashboard:**
+   Before hitting deploy, expand the Environment Variables section and add:
+   * **Name:** `VITE_API_BASE_URL`
+   * **Value:** The deployed URL from Step 1 (e.g., `https://tabruk-backend.onrender.com`). Do **NOT** put a trailing slash `/`.
+4. Click **Deploy**. Vercel will build the frontend, and it will now successfully reach your Render backend for checking out and payments!
+
+---
+
+## 🛠 Local Development Setup
+
+If you wish to test the site locally:
+
+1. Copy the `.env` template:
 ```bash
 cp .env.example .env
 ```
-
-2. Set your Neon connection string in `.env`:
-
-```env
-DATABASE_URL=postgresql://...
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-PAYTM_MID=your_mid
-PAYTM_MERCHANT_KEY=your_merchant_key
-PAYTM_WEBSITE=WEBSTAGING
-PAYTM_ENV=staging
-FRONTEND_BASE_URL=http://localhost:5173
-```
-
-3. Start backend + frontend:
-
+2. Setup your local `.env` with your Neon database string. (You do not need to set `VITE_API_BASE_URL` locally, as Vite automatically proxies `/api` traffic to port `4000` via `vite.config.js`).
+3. Start both the frontend and backend concurrently:
 ```bash
-pnpm run dev:full
+npm run dev
+# OR: pnpm run dev
 ```
 
-## Notes
-
-- Backend auto-creates tables (`products`, `orders`) on startup when `DATABASE_URL` is present.
-- If `DATABASE_URL` is missing or Neon is unreachable, backend falls back to local JSON files in `server/data/`.
-- Admin panel login uses `ADMIN_USERNAME` and `ADMIN_PASSWORD` from env.
-- Checkout uses Paytm: backend initiates and verifies payment before creating order.
-- Paytm callback endpoint redirects users to `/payment-status` using `FRONTEND_BASE_URL`.
+## 📦 Key Features
+* **Manual QR Checkout:** Customers generate their cart, fill out shipping details, and scan a dynamic UPI QR code. Verification happens manually via WhatsApp.
+* **Native Product Sharing:** Users can share products quickly directly via WhatsApp and other platforms with customized URLs.
+* **Fallback Storage:** If the Neon database goes offline, the backend writes to local `server/data/*.json` files automatically to preserve sales.
+* **Admin Dashboard:** Access standard order metrics locally with simple HTTP POST authentication based on the environmental credentials.
