@@ -60,3 +60,17 @@ npm run dev
 * **Native Product Sharing:** Users can share products quickly directly via WhatsApp and other platforms with customized URLs.
 * **Fallback Storage:** If the Neon database goes offline, the backend writes to local `server/data/*.json` files automatically to preserve sales.
 * **Admin Dashboard:** Access standard order metrics locally with simple HTTP POST authentication based on the environmental credentials.
+
+---
+
+## 🔐 Accessing the Admin Panel
+
+To securely view and manage your orders, you can access the built-in Admin Dashboard directly from your deployed frontend (or local environment).
+
+1. Open your browser and navigate to the `/admin` route on your frontend URL. 
+   * Local: `http://localhost:5173/admin`
+   * Production: `https://your-frontend-domain.vercel.app/admin`
+2. You will be prompted to log in. Use the credentials configured in your backend `.env`:
+   * **Username:** `admin` (or your custom `ADMIN_USERNAME`)
+   * **Password:** `admin123` (or your custom `ADMIN_PASSWORD`)
+3. Once logged in, you can view incoming orders, track their payment statuses, and manage your e-commerce presence!
