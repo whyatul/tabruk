@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -8,36 +8,61 @@ import { backendApi } from '../api/backend';
 export default function CartDrawer() {
   const { isCartOpen, setIsCartOpen, cartItems, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
-  const [customerForm, setCustomerForm] = useState({ name: '', phone: '', address: '', notes: '' });
+  const [customerForm, setCustomerForm] = useState({ name: '', phone: '', address: '', city: '', state: '', pincode: '', notes: '' });
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState('');
   
-  // New State for QR Checkout Flow
-  const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'qr'
+  // New State for Checkout Flow
+  const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'qr' | 'cod_success'
   const [createdOrder, setCreatedOrder] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
 
+  const shippingCharge = cartTotal >= 999 ? 0 : (cartTotal > 0 ? 90 : 0);
+  const finalTotal = cartTotal + shippingCharge;
+
   const handlePlaceOrder = async () => {
     try {
-      if (!customerForm.name || !customerForm.phone || !customerForm.address) {
-        setOrderError('Please fill in required fields (Name, Phone, Address)');
+      if (!customerForm.name || !customerForm.phone || !customerForm.address || !customerForm.city || !customerForm.state || !customerForm.pincode) {
+        setOrderError('Please fill in all required fields (Name, Phone, Address, City, State, Pincode)');
         return;
       }
       setIsPlacingOrder(true);
       setOrderError('');
 
+      const fullAddress = `${customerForm.address}, ${customerForm.city}, ${customerForm.state} - ${customerForm.pincode}`;
+      const combinedNotes = `[Payment: ${paymentMethod.toUpperCase()}] ${customerForm.notes ? `\nNotes: ${customerForm.notes}` : ''}`;
+      
+      const modifiedItems = [...cartItems];
+      if (shippingCharge > 0) {
+        modifiedItems.push({
+          id: 'shipping-charge',
+          name: 'Shipping Charge',
+          weight: 'Flat',
+          variation: { weight: 'Flat', price: shippingCharge },
+          quantity: 1,
+        });
+      }
+
       const order = await backendApi.createOrder({
-        customer: customerForm,
-        items: cartItems,
-        payment: {
-          gateway: 'manual_qr',
-          status: 'PENDING',
+        customer: {
+          name: customerForm.name,
+          phone: customerForm.phone,
+          address: fullAddress,
+          notes: combinedNotes
         },
+        items: modifiedItems,
       });
 
       setCreatedOrder(order);
-      setPaymentAmount(cartTotal);
-      setCheckoutStep('qr');
+      setPaymentAmount(finalTotal);
+      
+      if (paymentMethod === 'cod') {
+        setCheckoutStep('cod_success');
+      } else {
+        setCheckoutStep('qr');
+      }
+      
       clearCart();
     } catch (error) {
       setOrderError(error.message || 'Failed to place order');
@@ -48,10 +73,10 @@ export default function CartDrawer() {
 
   const resetDrawer = () => {
     setIsCartOpen(false);
-    // Reset back to cart if they close and reopen later (only matters if they add items again)
     setTimeout(() => {
       setCheckoutStep('cart');
-      setCustomerForm({ name: '', phone: '', address: '', notes: '' });
+      setCustomerForm({ name: '', phone: '', address: '', city: '', state: '', pincode: '', notes: '' });
+      setPaymentMethod('cod');
       setOrderError('');
     }, 300);
   };
@@ -75,9 +100,9 @@ export default function CartDrawer() {
             transition={{ type: 'tween', duration: 0.3 }}
             className="fixed inset-y-0 right-0 w-full max-w-md bg-[#111111] z-[60] flex flex-col shadow-2xl border-l border-white/10"
           >
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
               <h2 className="text-xl font-display text-gold">
-                 {checkoutStep === 'qr' ? 'Complete Payment' : 'Your Cart'}
+                 {checkoutStep === 'qr' ? 'Complete Payment' : checkoutStep === 'cod_success' ? 'Order Confirmed' : 'Your Cart'}
               </h2>
               <button
                 onClick={resetDrawer}
@@ -130,6 +155,30 @@ export default function CartDrawer() {
                     Send Screenshot via WhatsApp
                   </a>
                 </div>
+              </div>
+            ) : checkoutStep === 'cod_success' ? (
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center space-y-6 text-center">
+                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-2">
+                  <CheckCircle2 className="w-10 h-10 text-green-400" />
+                </div>
+                <h3 className="text-2xl font-display text-white">Order Placed!</h3>
+                <p className="text-white/60 font-inter text-sm">
+                  Your order <span className="text-gold font-medium">{createdOrder?.orderNumber}</span> has been confirmed.
+                </p>
+                <div className="bg-white/5 p-5 rounded-xl border border-white/10 w-full mt-4">
+                  <p className="text-sm text-white/80 leading-relaxed mb-3">
+                    You will pay <strong className="text-gold text-lg">Rs. {paymentAmount}</strong> upon delivery.
+                  </p>
+                  <p className="text-xs text-white/50">
+                    We'll contact you at {customerForm.phone} for delivery updates.
+                  </p>
+                </div>
+                <button
+                  onClick={resetDrawer}
+                  className="mt-6 text-sm font-inter text-gold uppercase tracking-widest border-b border-gold/50 pb-1 hover:border-gold hover:text-gold-light transition-colors block mx-auto"
+                >
+                  Continue Shopping
+                </button>
               </div>
             ) : (
               <>
@@ -200,20 +249,36 @@ export default function CartDrawer() {
                 </div>
 
                 {cartItems.length > 0 && (
-                  <div className="p-6 border-t border-white/10 bg-[#0a0a0a]">
-                    <div className="flex justify-between items-center mb-6">
-                      <span className="font-inter text-white/70">Subtotal</span>
-                      <span className="text-xl font-display text-gold">Rs. {cartTotal}</span>
+                  <div className="p-6 border-t border-white/10 bg-[#0a0a0a] shrink-0">
+                    <div className="space-y-2 mb-6">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-inter text-white/70">Subtotal</span>
+                        <span className="font-medium text-white">Rs. {cartTotal}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-inter text-white/70">Shipping</span>
+                        {shippingCharge === 0 ? (
+                            <span className="font-medium text-green-400">Free</span>
+                        ) : (
+                            <span className="font-medium text-white">Rs. {shippingCharge}</span>
+                        )}
+                      </div>
+                      {cartTotal < 999 && (
+                        <p className="text-xs text-gold/60 text-right mt-1">Add Rs. {999 - cartTotal} more for free shipping!</p>
+                      )}
+                      <div className="pt-3 border-t border-white/10 flex justify-between items-center">
+                        <span className="font-inter text-white font-medium">Total</span>
+                        <span className="text-xl font-display text-gold">Rs. {finalTotal}</span>
+                      </div>
                     </div>
-                    <p className="text-xs font-inter text-white/40 mb-6 text-center">
-                      Shipping and taxes calculated at checkout.
-                    </p>
-                    <div className="space-y-3 mb-4">
+                    
+                    <div className="space-y-3 mb-6 max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
+                      <p className="text-xs font-inter text-white/40 uppercase tracking-wider mb-2">Delivery Details</p>
                       <input
                         value={customerForm.name}
                         onChange={(event) => setCustomerForm((prev) => ({ ...prev, name: event.target.value }))}
-                        placeholder="Customer name"
-                        className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none text-white placeholder-white/30"
+                        placeholder="Full Name"
+                        className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
                       />
                       <input
                         type="tel"
@@ -222,23 +287,63 @@ export default function CartDrawer() {
                           const numericValue = event.target.value.replace(/\D/g, '');
                           setCustomerForm((prev) => ({ ...prev, phone: numericValue }));
                         }}
-                        placeholder="Phone"
-                        className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none text-white placeholder-white/30"
+                        placeholder="Phone Number"
+                        className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
                       />
                       <textarea
                         value={customerForm.address}
                         onChange={(event) => setCustomerForm((prev) => ({ ...prev, address: event.target.value }))}
-                        placeholder="Delivery address"
+                        placeholder="Street Address (House No, Building, Area)"
                         rows={2}
-                        className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none text-white placeholder-white/30"
+                        className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          value={customerForm.city}
+                          onChange={(event) => setCustomerForm((prev) => ({ ...prev, city: event.target.value }))}
+                          placeholder="City"
+                          className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
+                        />
+                        <input
+                          value={customerForm.pincode}
+                          onChange={(event) => setCustomerForm((prev) => ({ ...prev, pincode: event.target.value }))}
+                          placeholder="Pincode"
+                          className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
+                        />
+                      </div>
+                      <input
+                        value={customerForm.state}
+                        onChange={(event) => setCustomerForm((prev) => ({ ...prev, state: event.target.value }))}
+                        placeholder="State"
+                        className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
                       />
                       <textarea
                         value={customerForm.notes}
                         onChange={(event) => setCustomerForm((prev) => ({ ...prev, notes: event.target.value }))}
                         placeholder="Notes (optional)"
-                        rows={2}
-                        className="w-full bg-[#111111] border border-white/20 px-3 py-2 text-sm outline-none text-white placeholder-white/30"
+                        rows={1}
+                        className="w-full bg-[#111111] border border-white/20 px-3 py-2.5 rounded-md text-sm outline-none text-white placeholder-white/30 focus:border-gold/50 transition-colors"
                       />
+
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                         <p className="text-xs font-inter text-white/40 uppercase tracking-wider mb-3">Payment Method</p>
+                         <div className="space-y-2">
+                           <label className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'border-gold bg-gold/10' : 'border-white/10 hover:border-white/20'}`}>
+                             <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'cod' ? 'border-gold' : 'border-white/40'}`}>
+                                {paymentMethod === 'cod' && <div className="w-2 h-2 rounded-full bg-gold"></div>}
+                             </div>
+                             <input type="radio" className="hidden" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
+                             <span className="text-sm text-white font-medium">Cash on Delivery (COD)</span>
+                           </label>
+                           <label className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-colors ${paymentMethod === 'qr' ? 'border-gold bg-gold/10' : 'border-white/10 hover:border-white/20'}`}>
+                             <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'qr' ? 'border-gold' : 'border-white/40'}`}>
+                                {paymentMethod === 'qr' && <div className="w-2 h-2 rounded-full bg-gold"></div>}
+                             </div>
+                             <input type="radio" className="hidden" name="paymentMethod" value="qr" checked={paymentMethod === 'qr'} onChange={() => setPaymentMethod('qr')} />
+                             <span className="text-sm text-white font-medium">Online Payment (UPI/QR)</span>
+                           </label>
+                         </div>
+                      </div>
                     </div>
 
                     {orderError && <p className="text-xs text-red-400 mb-3 text-center bg-red-400/10 py-2 rounded">{orderError}</p>}
@@ -246,9 +351,9 @@ export default function CartDrawer() {
                     <button
                       onClick={handlePlaceOrder}
                       disabled={isPlacingOrder}
-                      className="w-full bg-gold text-[#111111] py-4 text-sm font-inter uppercase tracking-widest hover:bg-gold-light transition-colors duration-300 font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-70"
+                      className="w-full bg-gold text-[#111111] py-4 text-sm font-inter uppercase tracking-widest hover:bg-gold-light transition-colors duration-300 font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-70 rounded-md"
                     >
-                      {isPlacingOrder ? 'Processing...' : 'Proceed to Payment'}
+                      {isPlacingOrder ? 'Processing...' : 'Place Order'}
                     </button>
                   </div>
                 )}
@@ -260,3 +365,4 @@ export default function CartDrawer() {
     </AnimatePresence>
   );
 }
+
